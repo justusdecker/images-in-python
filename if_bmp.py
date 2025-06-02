@@ -47,7 +47,7 @@ def loader(file_name: str):
     file_size = image[2:6]
     reserved = image[6:10] #! unused
     data_offset = image[10:14]
-    
+    data_offset = int.from_bytes(data_offset,'little')
     # InfoHeader
     
     size = image[14:18]
@@ -61,11 +61,8 @@ def loader(file_name: str):
     y_pixels_per_m = image[42:46]
     colors_used = image[46:50]
     important_colors = image[50:54]
-    
-    #Color Table
-    
-    
 
+    #Color Table
 
     assert int.from_bytes(width,"little") == 8 and int.from_bytes(height,"little") == 16
     
