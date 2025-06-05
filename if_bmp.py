@@ -34,36 +34,50 @@ def better_byte_viewer(data: bytes) -> None:
     for l,r in zip(left,right):
         print(f"{l:<48}{r}")
 
+def colored_char(c: str, col: tuple[int]):
+    r,g,b = col
+    return f"\033[38;2;{r};{g};{b}m{c}\033[39m"
+
 def loader(file_name: str):
-    # BitMap File Header
-    # DIB Header
+    """
+    low weight bmp loader. Will be not work in some cases
+    """
     assert file_name.endswith('.bmp')
     with open(file_name, 'rb') as file:
         image = file.read()
     better_byte_viewer(image)
-    # Header
-    
-    signature = image[:2]
-    file_size = image[2:6]
-    reserved = image[6:10] #! unused
+
     data_offset = image[10:14]
     data_offset = int.from_bytes(data_offset,'little')
-    # InfoHeader
     
-    size = image[14:18]
     width = image[18:22]
     height = image[22:26]
-    planes = image[26:28]
     bits_per_pixel = image[28:30]
-    compression = image[30:34]
-    image_size = image[34:38]
-    x_pixels_per_m = image[38:42]
-    y_pixels_per_m = image[42:46]
-    colors_used = image[46:50]
-    important_colors = image[50:54]
 
-    #Color Table
-
+    color_data = list(image[data_offset:])
+    
+    bpp = int.from_bytes(bits_per_pixel)
+    w = int.from_bytes(width,'little')
+    row_size = ((bpp * w + 31) // 32) * 4
+    h = int.from_bytes(height,'little')
+    
+    padding = row_size - ((bpp * w) // 8)
+    pixel_data = []
+    for _ in range(h):
+        row = []
+        for _ in range(w):
+            r = color_data.pop(0)
+            g = color_data.pop(0)
+            b = color_data.pop(0)
+            row.append((b,g,r))
+        pixel_data.append(row)
+        for i in range(padding):
+            color_data.pop(0)
+    print(pixel_data)
+    for x in pixel_data:
+        for y in x:
+            print(colored_char("X",y),end='')
+        print()
     assert int.from_bytes(width,"little") == 8 and int.from_bytes(height,"little") == 16
     
     
